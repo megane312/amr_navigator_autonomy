@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 <launch>
 
-    <param name="pcd_file_path" value="$(find hdl_localization)/data/inside_5.pcd" />
+    <param name="pcd_file_path" value="$(find hdl_localization)/data/niwa.pcd" />
     <param name="target_frame" value="base_link" />
 
-    <node name="compare_pcd" pkg="amr_navigator" type="compare_pcd" output="screen"/>
-    <node name="detection_close_point" pkg="amr_navigator" type="detection_close_point" output="screen"/>
+    <node name="compare_pcd" pkg="amr_navigator" type="compare_pcd" output="screen" />
+    <node name="detection_close_point" pkg="amr_navigator" type="detection_close_point"
+        output="screen" />
 
 
     <node name="evaluate_safety" pkg="amr_navigator" type="evalute_safety" output="screen">
@@ -14,15 +15,7 @@
         <param name="course_lim" value="20" />
     </node>
 
-    <include file="$(find pure_pursuit)/launch/pure_pursuit_node.launch">
-    </include>
 
-    <!--
-    <node name="joy_pub" pkg="joy" type="joy_node" output="screen"/>
-    <node name="joy_to_twist" pkg="amr_hw_control" type="joy_to_twist" output="screen">
-        <remap from="cmd_vel" to="cmd_raw"/>
-    </node>
-    -->
     <node name="twist_to_radius" pkg="amr_navigator" type="twist_to_radius" output="screen"/>
 
 

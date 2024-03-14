@@ -4,7 +4,7 @@
   <include file="$(find amr_hw_control)/launch/auto_dummy.launch"/>
 
 
-  <param name="waypoints_path" value="$(find amr_navigator)/path/waypoints.txt"/>
+  <param name="waypoints_path" value="$(find amr_navigator)/path/factory_loop.txt"/>
   <node name="load_waypoints" pkg="amr_navigator" type="load_waypoints.py" output="screen"/>
   <node name="init_pose" pkg="amr_navigator" type="init_pose.py" output="screen"/>
   <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 100"/>

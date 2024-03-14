@@ -2,20 +2,16 @@
 <launch>
 
   <include file="$(find amr_hw_control)/launch/joy_manual.launch" />
-  <node name="init_pose" pkg="amr_navigator" type="init_pose.py" output="screen"/>
+  <node name="init_pose" pkg="amr_navigator" type="init_pose.py" output="screen" />
 
   <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch" />
 
-
-
-
-
+  <include file="$(find amr_navigator)/launch/imu.launch" />
   <node name="imu_transformer" pkg="imu_transformer" type="imu_transformer_node" output="screen">
-      <remap from="imu_in/data" to="livox/imu"/>
-      <remap from="imu_out/data" to="imu/data"/>
-      <param name="target_frame" value="base_link"/>
+    <remap from="imu_in/data" to="/imu/data_raw" />
+    <remap from="imu_out/data" to="/imu/data" />
+    <param name="target_frame" value="base_link" />
   </node>
-
 
 
   <node name="pointcloud_to_laserscan" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" output="screen">
@@ -28,7 +24,7 @@
   <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 100"/>
 
 
-    <!-- gmapping -->
+  <!-- gmapping -->
   <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" clear_params="true">
     <rosparam command="load" file="$(find amr_navigator)/config/gmapping.yaml" />
     <remap from="scan" to="scan" />

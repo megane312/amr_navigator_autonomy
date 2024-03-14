@@ -6,12 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /LaserScan1
-        - /PointCloud21
-        - /Map1
-        - /TF1
         - /TF1/Frames1
-        - /PointCloud22
       Splitter Ratio: 0.5
     Tree Height: 627
   - Class: rviz/Selection
@@ -142,6 +137,8 @@ Visualization Manager:
           Value: false
         frame:
           Value: true
+        imu_link:
+          Value: true
         laser:
           Value: true
         lidar_base:
@@ -152,9 +149,7 @@ Visualization Manager:
           Value: true
         odom:
           Value: true
-        wheel_left:
-          Value: true
-        wheel_right:
+        pcl_link:
           Value: true
       Marker Alpha: 1
       Marker Scale: 1
@@ -163,26 +158,27 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
+        base_link:
+          frame:
+            caster_backward:
+              {}
+            caster_forward:
+              {}
+            laser:
+              imu_link:
+                {}
+              livox_frame:
+                {}
+            lidar_base:
+              {}
+          pcl_link:
+            {}
         map:
           camera_init:
             body:
               {}
           odom:
-            base_link:
-              frame:
-                caster_backward:
-                  {}
-                caster_forward:
-                  {}
-                laser:
-                  livox_frame:
-                    {}
-                lidar_base:
-                  {}
-                wheel_left:
-                  {}
-                wheel_right:
-                  {}
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 0.5
@@ -242,6 +238,10 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         laser:
           Alpha: 1
           Show Axes: false
@@ -253,6 +253,10 @@ Visualization Manager:
           Show Trail: false
           Value: true
         livox_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        pcl_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -272,6 +276,16 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Alpha: 1
+      Class: rviz_plugin_tutorials/Imu
+      Color: 204; 51; 204
+      Enabled: true
+      History Length: 1
+      Name: Imu
+      Queue Size: 10
+      Topic: /imu/data
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -300,7 +314,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 15.054153442382812
+      Distance: 11.6264009475708
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -308,17 +322,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.1991725116968155
-        Y: -2.3308920860290527
-        Z: -9.487787246704102
+        X: -0.7932069301605225
+        Y: -5.5146965980529785
+        Z: -7.263024806976318
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5047963857650757
+      Pitch: 0.9547967910766602
       Target Frame: <Fixed Frame>
-      Yaw: 0.46042948961257935
+      Yaw: 1.4654289484024048
     Saved: ~
 Window Geometry:
   Displays:

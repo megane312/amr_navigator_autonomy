@@ -1,6 +1,6 @@
 <launch>
 
-  <include file="$(find amr_hw_control)/launch/joy_manual.launch"/>
+  <include file="$(find amr_hw_control)/launch/joy_manual.launch" />
   <node name="odom_to_pose" pkg="amr_navigator" type="odom_to_pose" output="screen"/>
 
 

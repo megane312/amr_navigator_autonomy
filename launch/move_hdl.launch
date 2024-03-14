@@ -1,12 +1,13 @@
 <launch>
 
-  <include file="$(find amr_hw_control)/launch/auto_move.launch"/>
+  <include file="$(find amr_hw_control)/launch/auto_move.launch" />
 
-  <node name="odom_to_pose" pkg="amr_navigator" type="odom_to_pose" output="screen"/>
+  <node name="odom_to_pose" pkg="amr_navigator" type="odom_to_pose" output="screen" />
 
-  <param name="waypoints_path" value="$(find amr_navigator)/path/refresh.txt"/>
-  <node name="load_waypoints" pkg="amr_navigator" type="load_waypoints.py" output="screen"/>
-
+  <param name="waypoints_path" value="$(find amr_navigator)/path/refresh.txt" />
+  <node name="load_waypoints" pkg="amr_navigator" type="load_waypoints.py" output="screen" />
+  <include file="$(find pure_pursuit)/launch/pure_pursuit_node.launch" />
+  <include file="$(find amr_navigator)/launch/compare_pcd.launch" />
 
   <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360_PC2.launch" />
   <include file="$(find hdl_localization)/launch/hdl_livox.launch" />

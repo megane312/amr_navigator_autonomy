@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /velocity1
       Splitter Ratio: 0.5
     Tree Height: 627
   - Class: rviz/Selection
@@ -48,7 +47,7 @@ Visualization Manager:
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 100
+      Plane Cell Count: 136
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 1
@@ -94,11 +93,11 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        line_link:
+        livox_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        livox_frame:
+        pcl_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -139,13 +138,13 @@ Visualization Manager:
           Value: true
         lidar_base:
           Value: true
-        line_link:
-          Value: true
         livox_frame:
           Value: true
         map:
           Value: true
         odom:
+          Value: true
+        pcl_link:
           Value: true
         wheel_left:
           Value: true
@@ -177,7 +176,7 @@ Visualization Manager:
                   {}
                 wheel_right:
                   {}
-              line_link:
+              pcl_link:
                 {}
       Update Interval: 0
       Value: true
@@ -329,7 +328,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.783561706542969
+      Distance: 53.8466911315918
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -337,9 +336,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 3.01125168800354
-        Y: -2.685802698135376
-        Z: 4.758677959442139
+        X: -12.529192924499512
+        Y: -33.126888275146484
+        Z: 4.752527713775635
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -347,7 +346,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 2.8504233360290527
+      Yaw: 2.8704235553741455
     Saved: ~
 Window Geometry:
   Displays:
