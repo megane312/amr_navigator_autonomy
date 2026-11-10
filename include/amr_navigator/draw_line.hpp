@@ -1,34 +1,40 @@
-// draw_line.hpp
-#ifndef DRAW_LINE_HPP
-#define DRAW_LINE_HPP
+#ifndef AMR_NAVIGATOR__DRAW_LINE_HPP_
+#define AMR_NAVIGATOR__DRAW_LINE_HPP_
 
-#include <ros/ros.h>
-#include <jsk_recognition_msgs/PolygonArray.h>
-#include <geometry_msgs/PolygonStamped.h>
-#include <geometry_msgs/Point32.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/Float32MultiArray.h>
-#include <cmath>
+#include <atomic>
+#include <memory>
 #include <vector>
 
-class PolygonPublisher {
+#include <geometry_msgs/msg/point32.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/float32_multi_array.hpp>
+#include <visualization_msgs/msg/marker.hpp>
+
+namespace amr_navigator
+{
+
+class PolygonPublisher : public rclcpp::Node
+{
 public:
     PolygonPublisher();
-    void make_polygonarray(double linear_velocity, double turning_radius, double width);
-    const double width;
-    const double ratio;
-    double turning_radius;
-    double linear_velocity;
 
 private:
-    ros::Publisher pub;
-    ros::Subscriber sub;
-    ros::NodeHandle nh;
+    void callback(const std_msgs::msg::Float32MultiArray::SharedPtr msg);
+    void timerCallback();
+    std::vector<geometry_msgs::msg::Point32> define_half_circle(double linear_velocity, double turning_radius, double width, int num_points);
+    std::vector<geometry_msgs::msg::Point32> define_rectangle(double linear_velocity, double width);
+    visualization_msgs::msg::Marker makeMarker(double linear_velocity, double turning_radius, double width);
 
-    void callback(const std_msgs::Float32MultiArray::ConstPtr &msg);
-    std::vector<geometry_msgs::Point32> define_half_circle(double linear_velocity, double turning_radius, double width, int num_points);
-    std::vector<geometry_msgs::Point32> define_rectangle(double linear_velocity, double width);
+    const double width_;
+    const double ratio_;
+    std::atomic<double> turning_radius_;
+    std::atomic<double> linear_velocity_;
 
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr pub_;
+    rclcpp::Subscription<std_msgs::msg::Float32MultiArray>::SharedPtr sub_;
+    rclcpp::TimerBase::SharedPtr timer_;
 };
 
-#endif // DRAW_LINE_HPP
+}  // namespace amr_navigator
+
+#endif  // AMR_NAVIGATOR__DRAW_LINE_HPP_

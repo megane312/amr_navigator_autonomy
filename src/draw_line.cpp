@@ -1,113 +1,132 @@
 #include "amr_navigator/draw_line.hpp"
 
-PolygonPublisher::PolygonPublisher() : width(0.5), ratio(4.0), turning_radius(0), linear_velocity(0) {
-    pub = nh.advertise<jsk_recognition_msgs::PolygonArray>("course", 1);
-    sub = nh.subscribe("radius_vel", 10, &PolygonPublisher::callback, this);
+#include <chrono>
+#include <functional>
+#include <cmath>
+
+namespace amr_navigator
+{
+
+PolygonPublisher::PolygonPublisher()
+: Node("pub"), width_(0.5), ratio_(4.0), turning_radius_(0.0), linear_velocity_(0.0)
+{
+    pub_ = create_publisher<visualization_msgs::msg::Marker>("course", 1);
+    sub_ = create_subscription<std_msgs::msg::Float32MultiArray>(
+        "radius_vel", 10,
+        std::bind(&PolygonPublisher::callback, this, std::placeholders::_1));
+    timer_ = create_wall_timer(
+        std::chrono::milliseconds(40),
+        std::bind(&PolygonPublisher::timerCallback, this));
 }
 
-void PolygonPublisher::callback(const std_msgs::Float32MultiArray::ConstPtr& msg) {
-    turning_radius = msg->data[0];
-    linear_velocity = msg->data[1];
-    // Now you can use turning_radius and linear_velocity
+void PolygonPublisher::callback(const std_msgs::msg::Float32MultiArray::SharedPtr msg)
+{
+    if (msg->data.size() < 2) {
+        return;
+    }
+    turning_radius_.store(msg->data[0]);
+    linear_velocity_.store(msg->data[1]);
 }
 
-std::vector<geometry_msgs::Point32> PolygonPublisher::define_half_circle(double linear_velocity, double turning_radius, double width, int num_points) {
-    // Define the center of the circles and the radii
-    double cx = 0, cy = -turning_radius, cz = 0;  // center of the circles, (x,y,z)
-    double r1 = turning_radius - width/2, r2 = turning_radius + width/2;  // radii
+std::vector<geometry_msgs::msg::Point32> PolygonPublisher::define_half_circle(
+    double linear_velocity, double turning_radius, double width, int num_points)
+{
+    const double cx = 0.0;
+    const double cy = -turning_radius;
+    const double cz = 0.0;
+    const double r1 = turning_radius - width / 2.0;
+    const double r2 = turning_radius + width / 2.0;
+    const double start_angle = 0.0;
+    const double end_angle = (linear_velocity * ratio_) / turning_radius;
 
-    // Define the start angle (in radians)
-    double start_angle = 0;  // 0 degrees
-    double end_angle = (linear_velocity*ratio) / turning_radius;
-    // Calculate the points along the outer half circle
-    std::vector<geometry_msgs::Point32> points;
-    for (int i = 0; i <= num_points; i++) {
-        // Calculate the angle (from start_angle to end_angle)
-        double a = start_angle + (end_angle - start_angle) * i / num_points;
-
-        // Calculate the x and y coordinates
-        geometry_msgs::Point32 circle_point;
-        circle_point.x = cx + r2 * sin(a);
-        circle_point.y = -(cy + r2 * cos(a));
+    std::vector<geometry_msgs::msg::Point32> points;
+    for (int i = 0; i <= num_points; ++i) {
+        const double a = start_angle + (end_angle - start_angle) * static_cast<double>(i) / num_points;
+        geometry_msgs::msg::Point32 circle_point;
+        circle_point.x = cx + r2 * std::sin(a);
+        circle_point.y = -(cy + r2 * std::cos(a));
         circle_point.z = cz;
-
-        // Create a Point32 message and add it to the list
         points.push_back(circle_point);
     }
-
-    // Calculate the points along the inner half circle in reverse order
-    for (int i = num_points; i >= 0; i--) {
-        // Calculate the angle (from start_angle to end_angle)
-        double a = start_angle + (end_angle - start_angle) * i / num_points;
-
-        // Calculate the x and y coordinates
-        geometry_msgs::Point32 circle_point;
-        circle_point.x = cx + r1 * sin(a);
-        circle_point.y = -(cy + r1 * cos(a));
+    for (int i = num_points; i >= 0; --i) {
+        const double a = start_angle + (end_angle - start_angle) * static_cast<double>(i) / num_points;
+        geometry_msgs::msg::Point32 circle_point;
+        circle_point.x = cx + r1 * std::sin(a);
+        circle_point.y = -(cy + r1 * std::cos(a));
         circle_point.z = cz;
-
-        // Create a Point32 message and add it to the list
         points.push_back(circle_point);
     }
+    return points;
+}
+
+std::vector<geometry_msgs::msg::Point32> PolygonPublisher::define_rectangle(double linear_velocity, double width)
+{
+    std::vector<geometry_msgs::msg::Point32> points;
+    geometry_msgs::msg::Point32 point;
+
+    point.x = 0.0;
+    point.y = -width / 2.0;
+    point.z = 0.0;
+    points.push_back(point);
+
+    point.y = width / 2.0;
+    points.push_back(point);
+
+    point.x = linear_velocity * ratio_;
+    points.push_back(point);
+
+    point.y = -width / 2.0;
+    points.push_back(point);
 
     return points;
 }
 
-std::vector<geometry_msgs::Point32> PolygonPublisher::define_rectangle(double linear_velocity, double width) {
-    std::vector<geometry_msgs::Point32> points;
-    geometry_msgs::Point32 point;
-
-    point.x = 0;
-    point.y = -width/2;
-    point.z = 0;
-    points.push_back(point);  // Bottom left corner
-
-    point.y = width/2;
-    points.push_back(point);  // Bottom right corner
-
-    point.x = linear_velocity*ratio;
-    points.push_back(point);  // Top right corner
-
-    point.y = -width/2;
-    points.push_back(point);  // Top left corner
-
-    return points;
-};
-
-
-void PolygonPublisher::make_polygonarray(double linear_velocity, double turning_radius, double width) {
-    jsk_recognition_msgs::PolygonArray msg;
-    std::vector<geometry_msgs::Point32> points;
-    if (turning_radius != 0) {
-        points = define_half_circle(linear_velocity, turning_radius, width, 20); // Define the corners of the rectangle
+visualization_msgs::msg::Marker PolygonPublisher::makeMarker(double linear_velocity, double turning_radius, double width)
+{
+    std::vector<geometry_msgs::msg::Point32> points;
+    if (turning_radius != 0.0) {
+        points = define_half_circle(linear_velocity, turning_radius, width, 20);
     } else {
-        points = define_rectangle(linear_velocity, width); // Define the corners of the rectangle
+        points = define_rectangle(linear_velocity, width);
     }
 
-    // Create a PolygonStamped message
-    geometry_msgs::PolygonStamped p;
-    p.header.frame_id = "base_link";
-    p.polygon.points = points;
+    visualization_msgs::msg::Marker marker;
+    marker.header.frame_id = "base_link";
+    marker.header.stamp = now();
+    marker.ns = "course";
+    marker.id = 0;
+    marker.type = visualization_msgs::msg::Marker::LINE_STRIP;
+    marker.action = visualization_msgs::msg::Marker::ADD;
+    marker.scale.x = 0.05;
+    marker.color.a = 1.0;
+    marker.color.r = 0.0;
+    marker.color.g = 0.6;
+    marker.color.b = 1.0;
 
-    // Add the polygon to the PolygonArray message
-    msg.header.frame_id = "base_link";
-    msg.polygons.push_back(p);
-
-    // Publish the PolygonArray message
-    pub.publish(msg);
+    for (const auto & point32 : points) {
+        geometry_msgs::msg::Point point;
+        point.x = point32.x;
+        point.y = point32.y;
+        point.z = point32.z;
+        marker.points.push_back(point);
+    }
+    if (!marker.points.empty()) {
+        marker.points.push_back(marker.points.front());
+    }
+    return marker;
 }
 
+void PolygonPublisher::timerCallback()
+{
+    pub_->publish(makeMarker(linear_velocity_.load(), turning_radius_.load(), width_));
+}
 
-int main(int argc, char **argv) {
-    ros::init(argc, argv, "pub");
-    PolygonPublisher pp;
-    ros::Rate rate(25);  // 25Hz
+}  // namespace amr_navigator
 
-    while (ros::ok()) {
-        pp.make_polygonarray(pp.linear_velocity, pp.turning_radius, pp.width);
-
-        ros::spinOnce();
-        rate.sleep();
-    }
+int main(int argc, char **argv)
+{
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<amr_navigator::PolygonPublisher>());
+    rclcpp::shutdown();
     return 0;
 }

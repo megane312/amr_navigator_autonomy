@@ -1,31 +1,46 @@
-#include <ros/ros.h>
-#include <std_msgs/Float32MultiArray.h>
-#include <geometry_msgs/Twist.h>
+#include <memory>
+#include <functional>
 
-ros::Publisher array_pub; // Declare this at a global scope or as a class member
+#include <geometry_msgs/msg/twist.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/float32_multi_array.hpp>
 
-void callback(const geometry_msgs::Twist::ConstPtr& msg) {
-    geometry_msgs::Twist twist = *msg;
-    std_msgs::Float32MultiArray array;
-    double turning_radius, linear_velocity;
-    if (twist.angular.z != 0) {
-        turning_radius = twist.linear.x / twist.angular.z;
-        linear_velocity = twist.linear.x;
-    } else {
-        turning_radius = 0;
-        linear_velocity = twist.linear.x;
+class TwistToRadiusNode : public rclcpp::Node
+{
+public:
+    TwistToRadiusNode()
+    : Node("array_publisher")
+    {
+        array_pub_ = create_publisher<std_msgs::msg::Float32MultiArray>("radius_vel", 10);
+        sub_ = create_subscription<geometry_msgs::msg::Twist>(
+            "cmd_raw", 10,
+            std::bind(&TwistToRadiusNode::callback, this, std::placeholders::_1));
     }
-    array.data.clear();
-    array.data.push_back(turning_radius);
-    array.data.push_back(linear_velocity);
-    array_pub.publish(array);
-}
 
-int main(int argc, char **argv) {
-    ros::init(argc, argv, "array_publisher");
-    ros::NodeHandle nh;
-    array_pub = nh.advertise<std_msgs::Float32MultiArray>("radius_vel", 10);
-    ros::Subscriber sub = nh.subscribe("cmd_raw", 10, callback);
-    ros::spin();
+private:
+    void callback(const geometry_msgs::msg::Twist::SharedPtr msg)
+    {
+        std_msgs::msg::Float32MultiArray array;
+        double turning_radius;
+        const double linear_velocity = msg->linear.x;
+        if (msg->angular.z != 0.0) {
+            turning_radius = msg->linear.x / msg->angular.z;
+        } else {
+            turning_radius = 0.0;
+        }
+        array.data.push_back(turning_radius);
+        array.data.push_back(linear_velocity);
+        array_pub_->publish(array);
+    }
+
+    rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr array_pub_;
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_;
+};
+
+int main(int argc, char **argv)
+{
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<TwistToRadiusNode>());
+    rclcpp::shutdown();
     return 0;
 }

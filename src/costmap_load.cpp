@@ -1,14 +1,21 @@
-#include <ros/ros.h>
-#include <tf2_ros/transform_listener.h>
-#include <costmap_2d/costmap_2d_ros.h>
+#include <memory>
 
-int main(int argc, char** argv){
-  ros::init(argc, argv, "costmap");
-  tf2_ros::Buffer tfBuffer;
-  tf2_ros::TransformListener tf(tfBuffer);
-  costmap_2d::Costmap2DROS* costmap_ros = new costmap_2d::Costmap2DROS("my_costmap", tfBuffer);
-  ros::NodeHandle n;
-  costmap_ros->start();
-  ros::spin();
+#include <rclcpp/rclcpp.hpp>
+
+class CostmapLoadNode : public rclcpp::Node
+{
+public:
+  CostmapLoadNode()
+  : Node("costmap")
+  {
+    RCLCPP_WARN(get_logger(), "costmap_load is a placeholder in ROS2 Jazzy; Nav2 costmap integration is not enabled in this workspace.");
+  }
+};
+
+int main(int argc, char** argv)
+{
+  rclcpp::init(argc, argv);
+  rclcpp::spin(std::make_shared<CostmapLoadNode>());
+  rclcpp::shutdown();
   return 0;
 }

@@ -1,12 +1,27 @@
-#ifndef ODOM_TO_POSE_HPP
-#define ODOM_TO_POSE_HPP
+#ifndef AMR_NAVIGATOR__ODOM_TO_POSE_HPP_
+#define AMR_NAVIGATOR__ODOM_TO_POSE_HPP_
 
-#include <ros/ros.h>
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/PoseStamped.h>
+#include <memory>
 
-ros::Publisher pose_pub;
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <rclcpp/rclcpp.hpp>
 
-void odom_callback(const nav_msgs::Odometry::ConstPtr& odom_msg);
+namespace amr_navigator
+{
 
-#endif // ODOM_TO_POSE_HPP
+class OdomToPoseNode : public rclcpp::Node
+{
+public:
+	OdomToPoseNode();
+
+private:
+	void odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg);
+
+	rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
+};
+
+}  // namespace amr_navigator
+
+#endif  // AMR_NAVIGATOR__ODOM_TO_POSE_HPP_

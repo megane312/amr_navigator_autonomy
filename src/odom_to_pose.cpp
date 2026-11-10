@@ -1,23 +1,46 @@
 #include "amr_navigator/odom_to_pose.hpp"
 
+#include <atomic>
 
-void odom_callback(const nav_msgs::Odometry::ConstPtr& odom_msg)
+namespace amr_navigator
 {
-    geometry_msgs::PoseStamped pose_stamped_msg;
-    pose_stamped_msg.header = odom_msg->header;
-    pose_stamped_msg.pose = odom_msg->pose.pose;
-    pose_pub.publish(pose_stamped_msg);
+
+OdomToPoseNode::OdomToPoseNode()
+: Node("odom_to_pose")
+{
+    pose_pub_ = create_publisher<geometry_msgs::msg::PoseStamped>("/pose", 10);
+    odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
+        "/odom", 10,
+        std::bind(&OdomToPoseNode::odomCallback, this, std::placeholders::_1));
+
+    RCLCPP_INFO(get_logger(), "Listening to /odom and publishing /pose");
 }
+
+void OdomToPoseNode::odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
+{
+    geometry_msgs::msg::PoseStamped pose_stamped_msg;
+    pose_stamped_msg.header = msg->header;
+    pose_stamped_msg.pose = msg->pose.pose;
+    pose_pub_->publish(pose_stamped_msg);
+
+    static std::atomic<int> pose_count{0};
+    const int current_count = ++pose_count;
+    if (current_count <= 5 || (current_count % 20) == 0) {
+        RCLCPP_INFO(
+            get_logger(),
+            "Forwarded /odom -> /pose #%d x=%.3f y=%.3f",
+            current_count,
+            pose_stamped_msg.pose.position.x,
+            pose_stamped_msg.pose.position.y);
+    }
+}
+
+}  // namespace amr_navigator
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "odom_to_pose");
-    ros::NodeHandle nh;
-
-    ros::Subscriber odom_sub = nh.subscribe("/odom", 10, odom_callback);
-    pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/pose", 10);
-
-    ros::spin();
-
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<amr_navigator::OdomToPoseNode>());
+    rclcpp::shutdown();
     return 0;
 }
